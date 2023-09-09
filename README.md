@@ -16,6 +16,8 @@ You can launch this program at startup either by adding a shortcut to your start
 
 When using a task, it's usually best to add a log on event trigger. There is a configurable delay aswell.
 
+The audio files in the release are optional, you can remove them if you want this program to be silent.
+
 # Building
 
 The project was created with VS2019 and requires C++17 or C++20 to build.
