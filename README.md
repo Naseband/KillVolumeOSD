@@ -2,7 +2,7 @@
 
 Kills Windows 10's annoying Volume and Brightness display until the next time explorer is completely restarted.
 
-I only made this version as it is a lot simpler and I do not ever want to restore it. I also used a slightly different method to bring up the OSD (no key sends).
+I only made this version as it is a lot simpler and I do not ever want to restore it. I also used a slightly different method to bring up the OSD (no key sends to the active window).
 
 # Building
 
