@@ -6,11 +6,14 @@ I only made this version as it is a lot simpler and I do not ever want to restor
 
 # Launch options
 
-There are two available command line parameters:
+There are three available command line parameters:
 
 "-debug" will enable logging to log.txt.
 
 "-delay" will delay the launch by five seconds.
+
+"-daemon" will keep the program running in the background. This will keep the program looking for the OSD in case you ever restart explorer.exe.
+Note that it does not attempt to bring up the OSD a second time after initial launch, instead it will hide the OSD whenever it is shown via user interaction.
 
 You can launch this program at startup either by adding a shortcut to your startup directory (Win + R, "shell:startup") or create a task in task scheduler for individual users (Win + R, "taskschd.msc").
 
