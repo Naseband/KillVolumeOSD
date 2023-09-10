@@ -10,13 +10,13 @@ using namespace std;
 
 bool g_bDebug = false;
 
-int ShowError(const char* szText)
+int ShowError(wstring Text)
 {
     mciSendString(L"open \"notify-error.mp3\" type mpegvideo alias mp3", NULL, 0, NULL);
     mciSendString(L"play mp3 wait", NULL, 0, NULL);
     mciSendString(L"close mp3", NULL, 0, NULL);
 
-    MessageBoxA(NULL, szText, "KillVolumeOSD", 0);
+    MessageBox(NULL, Text.c_str(), L"KillVolumeOSD", 0);
 
     return 1;
 }
@@ -46,6 +46,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     wstring Params{ lpCmdLine };
 
+    bool bDaemon = false;
+    bool bDelay = false;
+
 #if defined _DEBUG
 
     g_bDebug = true;
@@ -54,71 +57,100 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (Params.find(L"-debug") != Params.npos)
         g_bDebug = true;
+
 #endif
 
+    if (Params.find(L"-daemon") != Params.npos)
+        bDaemon = true;
+
     if (Params.find(L"-delay") != Params.npos)
-        Sleep(5000);
+        bDelay = true;
 
     Log(L"--- Killing VolumeOSD");
+    Log(format(L"-- Debug: {}", g_bDebug ? L"Yes" : L"No"));
+    Log(format(L"-- Delay: {}", bDelay ? L"Yes" : L"No"));
+    Log(format(L"-- Daemon: {}", bDaemon ? L"Yes" : L"No"));
 
-    HWND hWndExplorer = GetShellWindow();
+    HWND hWndExplorer;
+
+    do
+    {
+        Sleep(200);
+
+        hWndExplorer = GetShellWindow();
+    }
+    while (hWndExplorer == NULL);
 
     Log(format(L"GetShellWindow HWND = {}", (void*)hWndExplorer));
 
-    if (hWndExplorer == NULL)
-    {
-        return ShowError("Failed to find Shell proxy window.");
-    }
+    if (bDelay)
+        Sleep(5000);
 
     PostMessage(hWndExplorer, WM_APPCOMMAND, 0, APPCOMMAND_VOLUME_MUTE << 16);
     PostMessage(hWndExplorer, WM_APPCOMMAND, 0, APPCOMMAND_VOLUME_MUTE << 16);
 
     HWND hWndTarget;
 
-    ULONGLONG ullTimeoutStartTick = GetTickCount64();
-
     do
     {
-        Sleep(200);
-
-        HWND hWndParent = NULL;
-
-        hWndTarget = NULL;
-        
-        while ((hWndParent = FindWindowEx(NULL, hWndParent, L"NativeHWNDHost", L"")) != NULL)
+        do
         {
-            Log(format(L"Parent candidate window HWND = {}", (void*)hWndParent));
+            Sleep(700);
 
-            if (FindWindowExW(hWndParent, NULL, L"DIRECTUIHWND", L"") != NULL)
+            HWND hWndParent = NULL;
+
+            hWndTarget = NULL;
+
+            while ((hWndParent = FindWindowEx(NULL, hWndParent, L"NativeHWNDHost", L"")) != NULL)
             {
-                Log(L"Found child window");
+                Log(format(L"Parent candidate window HWND = {}", (void*)hWndParent));
 
-                if (hWndTarget == NULL)
+                if (FindWindowExW(hWndParent, NULL, L"DIRECTUIHWND", L"") != NULL)
                 {
-                    Log(format(L"Child window HWND = {}", (void*)hWndParent));
+                    Log(L"Found child window");
 
-                    hWndTarget = hWndParent;
+                    if (hWndTarget == NULL)
+                    {
+                        Log(format(L"Target HWND = {}", (void*)hWndParent));
+
+                        hWndTarget = hWndParent;
+                    }
                 }
             }
         }
+        while (hWndTarget == NULL);
+
+        if (hWndTarget != NULL)
+        {
+            Log(format(L"Target window belongs to PID {}", GetWindowThreadProcessId(hWndTarget, 0)));
+
+            Log(format(L"Window is visible: {}", IsWindowVisible(hWndTarget) ? L"Yes" : L"No"));
+
+            if (IsWindowVisible(hWndTarget))
+            {
+                if (HideWindow(hWndTarget))
+                {
+                    Log(L"VolumeOSD Window hidden successfully");
+
+                    mciSendString(L"open \"notify-success.mp3\" type mpegvideo alias mp3", NULL, 0, NULL);
+                    mciSendString(L"play mp3 wait", NULL, 0, NULL);
+                    mciSendString(L"close mp3", NULL, 0, NULL);
+                }
+                else
+                {
+                    Log(L"Failed to hide VolumeOSD window");
+
+                    ShowError(L"Failed to hide VolumeOSD window.");
+                }
+            }
+        }
+
+        if (bDaemon)
+            Log(L"-- Waiting for next check");
+
+        Sleep(3000);
     }
-    while (hWndTarget == NULL && GetTickCount64() - ullTimeoutStartTick < 10000);
-
-    if (hWndTarget == NULL)
-    {
-        return ShowError("Failed to find VolumeOSD after timeout.");
-    }
-
-    Log(format(L"Target window belongs to PID {}", GetWindowThreadProcessId(hWndTarget, 0)));
-
-    if (!HideWindow(hWndTarget))
-    {
-        return ShowError("Failed to hide VolumeOSD window.");
-    }
-
-    mciSendString(L"open \"notify-success.mp3\" type mpegvideo alias mp3", NULL, 0, NULL);
-    mciSendString(L"play mp3 wait", NULL, 0, NULL);
-    mciSendString(L"close mp3", NULL, 0, NULL);
+    while (bDaemon);
 
     return 0;
 }
