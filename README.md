@@ -21,6 +21,12 @@ When using a task, it's usually best to add a log on event trigger. There is a c
 
 The audio files in the release are optional, you can remove them if you want this program to be silent.
 
+# Known issues
+
+When the OSD is hidden with the method this tool uses, media keys will not be propagated through the Windows 10 multimedia interface.
+
+This is not a problem for most media players like Spotify, Winamp, VLC, etc, however some applications rely on that interface exclusively (such as Firefox).
+
 # Building
 
 The project was created with VS2019 and requires C++17 or C++20 to build.
