@@ -6,7 +6,7 @@ I only made this version as it is a lot simpler and I do not ever want to restor
 
 # Command Line arguments
 
-|   **Option**   | **Effect** |
+|&nbsp;&nbsp;&nbsp;**Option**&nbsp;&nbsp;&nbsp;| **Effect** |
 |----------------|---------------|
 | `-debug`     | Logs debug messages to log.txt |
 | `-delay`     | Uses an initial delay of 5 seconds (useful on Windows startup) |
@@ -17,7 +17,7 @@ I only made this version as it is a lot simpler and I do not ever want to restor
 The following hide methods are also set via command line arguments.
 Only one of them can be used at a time.
 
-|   **Method**   | **Effect**|
+|&nbsp;&nbsp;&nbsp;**Method**&nbsp;&nbsp;&nbsp;| **Effect**|
 |----------------|------------|
 | `-destroy` | (default) Destroys the window completely. Side effect: App Commands (like multimedia inputs) do not propagate (ie. Browser media playback). |
 | `-hide` | Hides the window like in HideVolumeOSD and disables its keyboard and mouse input (just in case it does return). |
