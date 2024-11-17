@@ -43,6 +43,8 @@ bool g_bDebug{ false };
 
 std::wofstream g_LogFile(L"log.txt", std::ios::out);
 
+constexpr int NUM_TRIES = 10;
+
 // ------------------------------------------------------------ 
 
 int ShowError(const std::wstring& text)
@@ -181,15 +183,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     Log(L"-- Sending Mute Key messages ...");
 
-    PostMessage(window_explorer, WM_APPCOMMAND, 0, APPCOMMAND_VOLUME_MUTE << 16);
-    PostMessage(window_explorer, WM_APPCOMMAND, 0, APPCOMMAND_VOLUME_MUTE << 16);
+    SendMessageW(window_explorer, WM_APPCOMMAND, 0, APPCOMMAND_VOLUME_MUTE << 16);
+    SendMessageW(window_explorer, WM_APPCOMMAND, 0, APPCOMMAND_VOLUME_MUTE << 16);
 
     // Run main loop - only runs once if is_daemon is false
 
     HWND window_target{ NULL };
 
-    do
+    int tries{ 0 };
+
+    while (is_daemon || tries++ < NUM_TRIES)
     {
+        if(!is_daemon)
+            Log(std::format(L"Try: {}", tries));
+
         do
         {
             HWND window_parent{ NULL };
@@ -211,7 +218,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 }
             }
 
-            if(window_target == NULL)
+            if (window_target == NULL)
                 Sleep(500);
         }
         while (window_target == NULL);
@@ -236,6 +243,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 ShowError(L"Failed to hide VolumeOSD window.");
                 break;
             }
+
+            if (!is_daemon)
+                break;
         }
 
         if (is_daemon)
@@ -243,10 +253,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             Log(L"-- Waiting for next check");
             Sleep(2500);
         }
+        else
+        {
+            Sleep(60 + tries * 40);
+        }
     }
-    while (is_daemon);
-
-    Sleep(500);
 
     return 0;
 }
