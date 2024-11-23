@@ -41,7 +41,7 @@ constexpr const wchar_t* GetHideMethodName(eHideMethod method)
 
 bool g_bDebug{ false };
 
-std::wofstream g_LogFile(L"log.txt", std::ios::out);
+std::wofstream g_LogFile;
 
 constexpr int NUM_TRIES = 10;
 
@@ -140,6 +140,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         g_bDebug = true;
 
 #endif
+
+    if (g_bDebug)
+        g_LogFile.open(L"log.txt", std::ios::out);
 
     if (params.find(L"-daemon") != params.npos)
         is_daemon = true;
