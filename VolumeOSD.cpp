@@ -39,8 +39,6 @@ constexpr const wchar_t* GetHideMethodName(eHideMethod method)
     return L"Unknown";
 }
 
-bool g_bDebug{ false };
-
 std::wofstream g_LogFile;
 
 constexpr int NUM_TRIES = 10;
@@ -60,9 +58,6 @@ int ShowError(const std::wstring& text)
 
 void Log(const std::wstring& text)
 {
-    if (!g_bDebug)
-        return;
-
     g_LogFile << text << std::endl;
 }
 
@@ -124,6 +119,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     std::wstring params{ lpCmdLine };
 
+    bool is_debug{ false };
     bool is_daemon{ false };
     bool use_delay{ false };
     eHideMethod method{ eHideMethod::DESTROY };
@@ -132,16 +128,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 #if defined _DEBUG
 
-    g_bDebug = true;
+    is_debug = true;
 
 #else
 
     if (params.find(L"-debug") != params.npos)
-        g_bDebug = true;
+        is_debug = true;
 
 #endif
 
-    if (g_bDebug)
+    if (is_debug)
         g_LogFile.open(L"log.txt", std::ios::out);
 
     if (params.find(L"-daemon") != params.npos)
@@ -158,7 +154,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         method = eHideMethod::NOINPUT;
 
     Log(L"-- Killing VolumeOSD");
-    Log(std::format(L"- Debug: {}", g_bDebug ? L"Yes" : L"No"));
+    Log(std::format(L"- Debug: {}", is_debug ? L"Yes" : L"No"));
     Log(std::format(L"- Daemon: {}", is_daemon ? L"Yes" : L"No"));
     Log(std::format(L"- Delay: {}", use_delay ? L"Yes" : L"No"));
     Log(std::format(L"- Method: {}", GetHideMethodName(method)));
